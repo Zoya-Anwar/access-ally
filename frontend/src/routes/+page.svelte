@@ -6,6 +6,8 @@
 	import Footer from '$lib/Footer.svelte';
 	import Header from '$lib/Header.svelte';
 	import RecommendationCard from '$lib/RecommendationCard.svelte';
+	import EmbeddedHTML from '$lib/EmbeddedHTML.svelte';
+
 	import { onMount } from 'svelte';
 	import LoadingCard from '$lib/LoadingCard.svelte';
 	let loading = false;
@@ -103,7 +105,7 @@
 					}
 				}
 			} catch (err) {
-				error = 'Looks like OpenAI timed out :(';
+				error = 'Looks like we timed out :(';
 			}
 		} else {
 			error = await response.text();
@@ -169,7 +171,7 @@
 				<div class="md:pb-20 max-w-4xl mx-auto w-full">
 					{#if loading && !searchResponse && !recommendations}
 						<div class="fontsemibold text-lg text-center mt-8 mb-4">
-							Please be patient as I think. Good things are coming 😎.
+							Please be patient as I think good things are coming 😎.
 						</div>
 					{/if}
 					{#if error}
@@ -178,6 +180,7 @@
 						</div>
 					{/if}
 					{#if recommendations}
+
 						{#each recommendations as recommendation, i (i)}
 							<div>
 								{#if recommendation !== ''}

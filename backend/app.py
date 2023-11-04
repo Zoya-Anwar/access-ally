@@ -5,28 +5,15 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 
-@app.route('/api/card_data', methods=['GET'])
+@app.route('/api/card_data', methods=['POST'])
 def get_card_data():
-    card_data = [
-        {
-            "id": 0,
-            "name": "Nash",
-            "age": 20,
-            "src": "path/to/your/image.jpg",
-            "bio": "Jack of all, Master of some",
-            "genre": ["Metalcore", "Pop", "Rap"],
-            "tracks": [
-                {
-                    "name": "Blood & Water",
-                    "artist": "Memphis May Fire",
-                    "img": "https://i.scdn.co/image/ab67616d0000b27336daf308de541e4019a82139",
-                },
-                # Add other tracks
-            ],
-        },
-        # Add other card data
-    ]
-    return jsonify(card_data)
+    with open('routesets/routeset_3d068197/route_98d2795a/98d2795a_webmap.html', 'r') as file:
+        template_content = file.read()
+
+    # Convert the HTML content to JSON
+    template_json = {'html_content': template_content}
+
+    return jsonify(template_json)
 
 if __name__ == '__main__':
     app.run()
