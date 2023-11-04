@@ -4,6 +4,7 @@ import json
 import requests
 import folium
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 import contextily as ctx
 from collections import namedtuple
 import math
@@ -100,11 +101,31 @@ class Route:
 
     def generate_route_image(self):
         fig, ax = plt.subplots(figsize=(8, 8))
+
+        # Extract the x and y coordinates
         x = [coord[0] for coord in self.route_data['routes'][0]['geometry']['coordinates']]
         y = [coord[1] for coord in self.route_data['routes'][0]['geometry']['coordinates']]
-        ax.plot(x, y, color='blue', linewidth=2)
+
+        # Create a list of lines and colors
+        lines = []
+        colors = []
+
+        for i in range(len(self.route_segments)):
+            segment = self.route_segments[i]
+            lines.append(segment)
+
+            slope = self.segment_attributes['slope'][i]
+            color = slope_to_color(slope)
+            colors.append(color)
+
+        # Create a LineCollection
+        lc = LineCollection(lines, colors=colors, linewidths=6)
+        ax.add_collection(lc)
+
         ax.scatter(self.start.longitude, self.start.latitude, color='green', label='Start')
         ax.scatter(self.end.longitude, self.end.latitude, color='red', label='End')
+
+        # The rest of your function remains the same...
         ax.axis('off')
         buffer = 0.001
 
@@ -124,6 +145,7 @@ class Route:
         plt.tight_layout()
         plt.savefig(os.path.join(self.directory, f"{self.uuid}_route_overview.png"), dpi=150)
         plt.show()
+
 
 class RouteSet:
     def __init__(self, start: Coordinate, distance: float, num_routes: int):
@@ -165,3 +187,4 @@ if __name__ == "__main__":
     start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
     route_set = RouteSet(start=start_location, distance=5.0, num_routes=2)
     route_set.generate_routes()
+    route_set.routes[0].generate_route_image()
