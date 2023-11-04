@@ -8,6 +8,8 @@ import contextily as ctx
 from collections import namedtuple
 import math
 import random
+import branca.colormap as cm
+from slope_analysis import calculate_slope, slope_to_color
 
 BASEMAPS = {
     "OpenStreetMap": ctx.providers.OpenStreetMap.Mapnik,
@@ -22,9 +24,16 @@ class Route:
         self.start = start
         self.end = end
         self.parent_routeset = parent_routeset
-        self.data = self.fetch_osrm_route(self.start, self.end)
-        self.duration_seconds = self.data['routes'][0]['duration']
-        self.length_meters = self.data['routes'][0]['distance']
+        self.route_data = self.fetch_osrm_route(self.start, self.end)
+        self.route_coords = [(Coordinate(longitude=coord[0], latitude=coord[1])) for coord in self.route_data['routes'][0]['geometry']['coordinates']]
+        self.route_segments = [(self.route_coords[i], self.route_coords[i + 1]) for i in range(len(self.route_coords) - 1)]
+
+        self.segment_attributes = {
+            'slope': [calculate_slope(*segment) for segment in self.route_segments]
+        }
+
+        self.duration_seconds = self.route_data['routes'][0]['duration']
+        self.length_meters = self.route_data['routes'][0]['distance']
         self.uuid = str(uuid.uuid4())[:8]
         self.route_number = len(self.parent_routeset.routes) + 1
         self.directory = None
@@ -42,7 +51,7 @@ class Route:
         self.directory = os.path.join(parent_directory, f"route_{self.uuid}")
         os.makedirs(self.directory, exist_ok=True)
         with open(os.path.join(self.directory, f"{self.uuid}_routeinfo.geojson"), 'w') as f:
-            json.dump(self.data, f)
+            json.dump(self.route_data, f)
 
     def visualize_route(self):
         if self.parent_routeset:
@@ -59,27 +68,40 @@ class Route:
         self.plot_route_on_map(route_map)
         route_map.save(os.path.join(self.directory, f"{self.uuid}_webmap.html"))
 
+    def plot_route_on_individual_map(self):
+        route_map = folium.Map(location=Route.to_lat_long(self.start), zoom_start=14)
+        self.plot_route_on_map(route_map)
+        route_map.save(os.path.join(self.directory, f"{self.uuid}_webmap.html"))
+
     def plot_route_on_map(self, existing_map):
-        route_coords = [Route.to_lat_long(Coordinate(longitude=coord[0], latitude=coord[1]))
-                        for coord in self.data['routes'][0]['geometry']['coordinates']]
+        # Iterate over the segments and their corresponding slopes to plot them
+        for segment, slope in zip(self.route_segments, self.segment_attributes['slope']):
+            color_for_slope = slope_to_color(slope)  # Convert slope to its corresponding color
 
+            # Ensure each segment is a list of (lat, lon) pairs
+            segment_coords = [Route.to_lat_long(point) for point in segment]
+
+            folium.PolyLine(segment_coords, color=color_for_slope, weight=5, opacity=0.7).add_to(existing_map)
+
+        # Add start marker
+        folium.Marker(location=Route.to_lat_long(self.start), popup='Start', icon=folium.Icon(color='green')).add_to(
+            existing_map)
+
+        # Update popup_content for the end marker
         popup_content = f"Route UUID: {self.uuid}<br>" \
-                        f"Route Number: {self.route_number}<br" \
-                        f">Route Length: {self.length_meters}<br>" \
-                        f"Route Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds%60)}s"
-        popup_obj = folium.Popup(popup_content, max_width=300)  # Adjust the max_width as needed
+                        f"Route Number: {self.route_number}<br>" \
+                        f"Route Length: {self.length_meters} meters<br>" \
+                        f"Route Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds % 60)}s"
+        popup_obj = folium.Popup(popup_content, max_width=300)
 
-        folium.PolyLine(route_coords, color='blue', weight=5, opacity=0.7,
-                        popup=popup_obj).add_to(existing_map)
-        folium.Marker(location=Route.to_lat_long(self.start), popup='Start',
-                      icon=folium.Icon(color='green')).add_to(existing_map)
-        folium.Marker(location=Route.to_lat_long(self.end), popup='End',
-                      icon=folium.Icon(color='red')).add_to(existing_map)
+        # Add end marker with updated popup
+        folium.Marker(location=Route.to_lat_long(self.end), popup=popup_obj, icon=folium.Icon(color='red')).add_to(
+            existing_map)
 
     def generate_route_image(self):
         fig, ax = plt.subplots(figsize=(8, 8))
-        x = [coord[0] for coord in self.data['routes'][0]['geometry']['coordinates']]
-        y = [coord[1] for coord in self.data['routes'][0]['geometry']['coordinates']]
+        x = [coord[0] for coord in self.route_data['routes'][0]['geometry']['coordinates']]
+        y = [coord[1] for coord in self.route_data['routes'][0]['geometry']['coordinates']]
         ax.plot(x, y, color='blue', linewidth=2)
         ax.scatter(self.start.longitude, self.start.latitude, color='green', label='Start')
         ax.scatter(self.end.longitude, self.end.latitude, color='red', label='End')
