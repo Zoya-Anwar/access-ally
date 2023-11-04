@@ -9,8 +9,9 @@ import contextily as ctx
 from collections import namedtuple
 import math
 import random
-import branca.colormap as cm
-from slope_analysis import calculate_slope, slope_to_color
+import geopandas as gpd
+from shapely.geometry import Point
+from slope_analysis import calculate_slopes, slope_to_color
 
 BASEMAPS = {
     "OpenStreetMap": ctx.providers.OpenStreetMap.Mapnik,
@@ -30,7 +31,7 @@ class Route:
         self.route_segments = [(self.route_coords[i], self.route_coords[i + 1]) for i in range(len(self.route_coords) - 1)]
 
         self.segment_attributes = {
-            'slope': [calculate_slope(*segment) for segment in self.route_segments]
+            'slope': calculate_slopes(self.route_segments)
         }
 
         self.duration_seconds = self.route_data['routes'][0]['duration']
@@ -159,15 +160,25 @@ class RouteSet:
         self.map = folium.Map(location=Route.to_lat_long(self.start), zoom_start=14)
         folium.TileLayer(tiles=BASEMAPS["OpenStreetMap"]).add_to(self.map)
 
-    def generate_end_points(self):
-        delta_lat = self.distance / 111.0
-        delta_long = self.distance / (111.0 * math.cos(math.radians(self.start.latitude)))
-        angle = 2 * math.pi * random.random()
-        d_lat = delta_lat * math.sin(angle)
-        d_long = delta_long * math.cos(angle)
-        new_lat = self.start.latitude + d_lat
-        new_long = self.start.longitude + d_long
-        return Coordinate(longitude=new_long, latitude=new_lat)
+    def generate_end_points(self, polygon_path="data/isle_of_man_polygon.geojson"):
+        gdf = gpd.read_file(polygon_path)
+        isle_of_man_polygon = gdf.iloc[0].geometry
+
+        points_generated = 0
+        while True:
+            points_generated += 1
+            delta_lat = self.distance / 111.0
+            delta_long = self.distance / (111.0 * math.cos(math.radians(self.start.latitude)))
+            angle = 2 * math.pi * random.random()
+            d_lat = delta_lat * math.sin(angle)
+            d_long = delta_long * math.cos(angle)
+            new_lat = self.start.latitude + d_lat
+            new_long = self.start.longitude + d_long
+
+            # If the generated coordinate is on land, return it
+            if Point(new_long, new_lat).within(isle_of_man_polygon):
+                print(points_generated)
+                return Coordinate(longitude=new_long, latitude=new_lat)
 
     def generate_routes(self):
         for _ in range(self.num_routes):
@@ -185,6 +196,6 @@ class RouteSet:
 
 if __name__ == "__main__":
     start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
-    route_set = RouteSet(start=start_location, distance=5.0, num_routes=2)
+    route_set = RouteSet(start=start_location, distance=2.0, num_routes=5)
     route_set.generate_routes()
-    route_set.routes[0].generate_route_image()
+    #route_set.routes[0].generate_route_image()
