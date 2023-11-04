@@ -195,6 +195,6 @@ class RouteSet:
 
 if __name__ == "__main__":
     start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
-    route_set = RouteSet(start=start_location, distance=2.0, num_routes=5)
+    route_set = RouteSet(start=start_location, distance=2.0, num_routes=2)
     route_set.generate_routes()
     #route_set.routes[0].generate_route_image()

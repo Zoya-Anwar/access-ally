@@ -47,25 +47,33 @@ def calculate_slopes(point_pairs, dsm_file="data/isle_of_man_DSM.tif"):
         return slopes
 
 
+import matplotlib.colors as mcolors
+
 
 def slope_to_color(slope, slope_min=-1, slope_max=1):
     """
-    Convert a slope value to a continuous color between green (low slope) and red (high slope).
+    Convert a slope value to a continuous color based on thresholds for easy and medium slopes.
     """
-    # Define a colormap that transitions from green to yellow to red
-    cmap = mcolors.LinearSegmentedColormap.from_list("RdYlGn_r", ["green", "yellow", "red"], N=256)
+    # Define thresholds for easy, medium, and steep slopes
+    easy_slope = 0.03
+    medium_slope = 0.05
 
-    # Normalize the slope value to a value between 0 and 1
+    # Normalize the slope thresholds to values between 0 and 1
+    norm_easy = (easy_slope - slope_min) / (slope_max - slope_min)
+    norm_medium = (medium_slope - slope_min) / (slope_max - slope_min)
+
+    # Define the colormap with distinct regions for easy and medium slopes, and a transition for steeper values
+    colors = [(0, "green"),
+              (norm_easy, "green"),
+              (norm_medium, "yellow"),
+              (1, "red")]
+
+    cmap = mcolors.LinearSegmentedColormap.from_list("custom_RdYlGn_r", [color for _, color in colors], N=256)
+
+    # Normalize the current slope value to a value between 0 and 1
     norm_slope = (slope - slope_min) / (slope_max - slope_min)
     rgba_color = cmap(norm_slope)  # This returns a tuple (R, G, B, A)
 
     # Convert the rgba values into a hex color string
     hex_color = mcolors.rgb2hex(rgba_color)
     return hex_color
-
-if __name__ == '__main__':
-    # Example usage
-    point1 = Coordinate(longitude=-4.4824, latitude=54.1663)
-    point2 = Coordinate(longitude=-4.4664, latitude=54.2103)
-    slope = calculate_slope(point1, point2)
-    print(f"Slope between points: {slope}")
