@@ -8,50 +8,43 @@ import matplotlib.colors as mcolors
 Coordinate = namedtuple('Coordinate', ['longitude', 'latitude'])
 
 
-def calculate_slope(point1, point2, dsm_file="data/isle_of_man_DSM.tif"):
-    """
-    Calculate the slope between two lat/lon points from a DSM.
-
-    Parameters:
-        dsm_file (str): Path to the DSM file.
-        point1 (Coordinate): Coordinate of the first point.
-        point2 (Coordinate): Coordinate of the second point.
-
-    Returns:
-        float: Slope between the two points (rise over run).
-    """
-
-    # Load the DSM
+def calculate_slopes(point_pairs, dsm_file="data/isle_of_man_DSM.tif"):
     with rasterio.open(dsm_file) as src:
-        # Determine the UTM zone for the region
-        zone = int((point1.longitude + 180) / 6) + 1
-        hemisphere = 'north' if point1.latitude >= 0 else 'south'
-        utm_crs = CRS(f"EPSG:326{zone}") if hemisphere == 'north' else CRS(f"EPSG:327{zone}")
+        slopes = []
 
-        # Transform points to UTM
-        transformer = Transformer.from_crs("EPSG:4326", utm_crs, always_xy=True)
-        x1_utm, y1_utm = transformer.transform(point1.longitude, point1.latitude)
-        x2_utm, y2_utm = transformer.transform(point2.longitude, point2.latitude)
+        # Cache UTM zone and transformer for efficiency
+        cached_zone = None
+        transformer = None
 
-        # Calculate the "run" or horizontal distance in UTM (meters)
-        run = Point(x1_utm, y1_utm).distance(Point(x2_utm, y2_utm))
+        for point1, point2 in point_pairs:
+            zone = int((point1.longitude + 180) / 6) + 1
+            hemisphere = 'north' if point1.latitude >= 0 else 'south'
+            utm_crs_code = f"EPSG:326{zone}" if hemisphere == 'north' else f"EPSG:327{zone}"
 
-        # Convert lat/lon to raster's CRS to extract elevation
-        pt1_geom = transform_geom('EPSG:4326', src.crs, Point(point1.longitude, point1.latitude).__geo_interface__)
-        pt2_geom = transform_geom('EPSG:4326', src.crs, Point(point2.longitude, point2.latitude).__geo_interface__)
+            if zone != cached_zone:
+                transformer = Transformer.from_crs("EPSG:4326", utm_crs_code, always_xy=True)
+                cached_zone = zone
 
-        x1, y1 = pt1_geom['coordinates']
-        x2, y2 = pt2_geom['coordinates']
+            x1_utm, y1_utm = transformer.transform(point1.longitude, point1.latitude)
+            x2_utm, y2_utm = transformer.transform(point2.longitude, point2.latitude)
 
-        # Extract elevation values at the two points
-        z1 = next(src.sample([(x1, y1)]))[0]
-        z2 = next(src.sample([(x2, y2)]))[0]
+            run = Point(x1_utm, y1_utm).distance(Point(x2_utm, y2_utm))
 
-        # Calculate the slope
-        rise = z2 - z1
-        slope = rise / run
+            pt1_geom = transform_geom('EPSG:4326', src.crs, Point(point1.longitude, point1.latitude).__geo_interface__)
+            pt2_geom = transform_geom('EPSG:4326', src.crs, Point(point2.longitude, point2.latitude).__geo_interface__)
 
-    return slope * 100 # in percent
+            x1, y1 = pt1_geom['coordinates']
+            x2, y2 = pt2_geom['coordinates']
+
+            z1 = next(src.sample([(x1, y1)]))[0]
+            z2 = next(src.sample([(x2, y2)]))[0]
+
+            rise = z2 - z1
+            slope = rise / run
+
+            slopes.append(slope * 100)
+
+        return slopes
 
 
 
