@@ -177,7 +177,6 @@ class RouteSet:
 
             # If the generated coordinate is on land, return it
             if Point(new_long, new_lat).within(isle_of_man_polygon):
-                print(points_generated)
                 return Coordinate(longitude=new_long, latitude=new_lat)
 
     def generate_routes(self):
