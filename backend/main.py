@@ -16,12 +16,17 @@ BASEMAPS = {
 
 Coordinate = namedtuple('Coordinate', ['longitude', 'latitude'])
 
+
 class Route:
-    def __init__(self, start: Coordinate, end: Coordinate):
+    def __init__(self, start: Coordinate, end: Coordinate, parent_routeset=None):
         self.start = start
         self.end = end
+        self.parent_routeset = parent_routeset
         self.data = self.fetch_osrm_route(self.start, self.end)
+        self.duration_seconds = self.data['routes'][0]['duration']
+        self.length_meters = self.data['routes'][0]['distance']
         self.uuid = str(uuid.uuid4())[:8]
+        self.route_number = len(self.parent_routeset.routes) + 1
         self.directory = None
 
     @staticmethod
@@ -36,27 +41,42 @@ class Route:
     def save_geojson(self, parent_directory: str):
         self.directory = os.path.join(parent_directory, f"route_{self.uuid}")
         os.makedirs(self.directory, exist_ok=True)
-        with open(os.path.join(self.directory, f"{self.uuid}_geojson.geojson"), 'w') as f:
+        with open(os.path.join(self.directory, f"{self.uuid}_routeinfo.geojson"), 'w') as f:
             json.dump(self.data, f)
 
     def visualize_route(self):
-        self.plot_route_on_map()
-        self.plot_route_on_map_mpl()
+        if self.parent_routeset:
+            self.plot_route_on_map(self.parent_routeset.map)
+        else:
+            self.plot_route_on_individual_map()
 
     @staticmethod
     def to_lat_long(coord: Coordinate) -> tuple:
         return (coord.latitude, coord.longitude)
 
-    def plot_route_on_map(self):
-        route_coords = [Route.to_lat_long(Coordinate(longitude=coord[0], latitude=coord[1])) for coord in self.data['routes'][0]['geometry']['coordinates']]
+    def plot_route_on_individual_map(self):
         route_map = folium.Map(location=Route.to_lat_long(self.start), zoom_start=14)
-        folium.TileLayer(tiles=BASEMAPS["OpenStreetMap"]).add_to(route_map)
-        folium.PolyLine(route_coords, color='blue', weight=5, opacity=0.7).add_to(route_map)
-        folium.Marker(location=Route.to_lat_long(self.start), popup='Start', icon=folium.Icon(color='green')).add_to(route_map)
-        folium.Marker(location=Route.to_lat_long(self.end), popup='End', icon=folium.Icon(color='red')).add_to(route_map)
+        self.plot_route_on_map(route_map)
         route_map.save(os.path.join(self.directory, f"{self.uuid}_webmap.html"))
 
-    def plot_route_on_map_mpl(self):
+    def plot_route_on_map(self, existing_map):
+        route_coords = [Route.to_lat_long(Coordinate(longitude=coord[0], latitude=coord[1]))
+                        for coord in self.data['routes'][0]['geometry']['coordinates']]
+
+        popup_content = f"Route UUID: {self.uuid}<br>" \
+                        f"Route Number: {self.route_number}<br" \
+                        f">Route Length: {self.length_meters}<br>" \
+                        f"Route Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds%60)}s"
+        popup_obj = folium.Popup(popup_content, max_width=300)  # Adjust the max_width as needed
+
+        folium.PolyLine(route_coords, color='blue', weight=5, opacity=0.7,
+                        popup=popup_obj).add_to(existing_map)
+        folium.Marker(location=Route.to_lat_long(self.start), popup='Start',
+                      icon=folium.Icon(color='green')).add_to(existing_map)
+        folium.Marker(location=Route.to_lat_long(self.end), popup='End',
+                      icon=folium.Icon(color='red')).add_to(existing_map)
+
+    def generate_route_image(self):
         fig, ax = plt.subplots(figsize=(8, 8))
         x = [coord[0] for coord in self.data['routes'][0]['geometry']['coordinates']]
         y = [coord[1] for coord in self.data['routes'][0]['geometry']['coordinates']]
@@ -83,7 +103,6 @@ class Route:
         plt.savefig(os.path.join(self.directory, f"{self.uuid}_route_overview.png"), dpi=150)
         plt.show()
 
-
 class RouteSet:
     def __init__(self, start: Coordinate, distance: float, num_routes: int):
         self.start = start
@@ -93,6 +112,8 @@ class RouteSet:
         self.routeset_directory = os.path.join('routesets', self.routeset_id)
         os.makedirs(self.routeset_directory, exist_ok=True)
         self.routes = []
+        self.map = folium.Map(location=Route.to_lat_long(self.start), zoom_start=14)
+        folium.TileLayer(tiles=BASEMAPS["OpenStreetMap"]).add_to(self.map)
 
     def generate_end_points(self):
         delta_lat = self.distance / 111.0
@@ -107,10 +128,15 @@ class RouteSet:
     def generate_routes(self):
         for _ in range(self.num_routes):
             end = self.generate_end_points()
-            route_instance = Route(self.start, end)
+            route_instance = Route(self.start, end, parent_routeset=self)
             route_instance.save_geojson(self.routeset_directory)
             route_instance.visualize_route()
             self.routes.append(route_instance)
+        self.save_routeset_map()
+
+    def save_routeset_map(self):
+        self.map.save(os.path.join(self.routeset_directory, f"{self.routeset_id}_routeset_summary.html"))
+
 
 
 if __name__ == "__main__":
