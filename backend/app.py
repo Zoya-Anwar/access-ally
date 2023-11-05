@@ -1,23 +1,39 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
+from route import Route, Coordinate, RouteSet
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+# A variable to store the selected options (you can use a database instead)
+selected_options = {
+    'country': '',
+    'selected_categories': [],
+    'specific_descriptors': ''
+}
 
 @app.route('/api/card_data', methods=['POST'])
 def get_card_data():
-    with open('routesets/routeset_3d068197/route_98d2795a/98d2795a_webmap.html', 'r') as file:
-        template_content = file.read()
+    global selected_options
+    uuids = []
+    # Get the data from the request form
+    country = request.form.get('country')
+    selected_categories = request.form.getlist('categories')  # Use getlist to handle multiple checkboxes
+    specific_descriptors = request.form.get('specific_descriptors')
+
+    # Save the data to the selected_options variable
+    selected_options['country'] = country
+    selected_options['selected_categories'] = selected_categories
+    selected_options['specific_descriptors'] = specific_descriptors
+
+    start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
+    route_set = RouteSet(start=start_location, distance=2.0, num_routes=10)
+    uuids = route_set.generate_routes()
 
     # Convert the HTML content to JSON
-    template_json = {'html_content': str(template_content)}
+    template_json = {'uuids': uuids}
 
     return jsonify(template_json)
-
-@app.route('/show_card')
-def show():
-    return render_template('routesets/routeset_3d068197/route_98d2795a/map.html')
 
 if __name__ == '__main__':
     app.run()

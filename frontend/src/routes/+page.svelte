@@ -18,7 +18,7 @@
 	 */
 	let searchResponse = '';
 	/**
-	 * @type {Array<string | {htmlContent: String}>}
+	 * @type {Array<string | {UUID: String}>}
 	 */
 	let recommendations = [];
 
@@ -33,8 +33,8 @@
 			recommendations = x.map((d, i) => {
 				if ((x.length - 1 > i || endStream) && d !== '') {
 					// @ts-ignore
-					const htmlContent = d.slice(1, -1);
-					return { htmlContent };
+					const UUID = d.slice(1, -1);
+					return { UUID };
 				} else {
 					return d;
 				}
