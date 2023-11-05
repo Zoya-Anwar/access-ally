@@ -60,6 +60,7 @@ class Route:
             self.plot_route_on_map(self.parent_routeset.map)
         else:
             self.plot_route_on_individual_map()
+        return self.uuid
 
     @staticmethod
     def to_lat_long(coord: Coordinate) -> tuple:
@@ -154,7 +155,7 @@ class RouteSet:
         self.distance = distance
         self.num_routes = num_routes
         self.routeset_id = f"routeset_{str(uuid.uuid4())[:8]}"
-        self.routeset_directory = os.path.join('routesets', self.routeset_id)
+        self.routeset_directory = os.path.join('static', self.routeset_id)
         os.makedirs(self.routeset_directory, exist_ok=True)
         self.routes = []
         self.map = folium.Map(location=Route.to_lat_long(self.start), zoom_start=14)
@@ -180,13 +181,15 @@ class RouteSet:
                 return Coordinate(longitude=new_long, latitude=new_lat)
 
     def generate_routes(self):
+        uuids = []
         for _ in range(self.num_routes):
             end = self.generate_end_points()
             route_instance = Route(self.start, end, parent_routeset=self)
             route_instance.save_geojson(self.routeset_directory)
-            route_instance.visualize_route()
+            uuids.append(route_instance.visualize_route())
             self.routes.append(route_instance)
         self.save_routeset_map()
+        return uuids
 
     def save_routeset_map(self):
         self.map.save(os.path.join(self.routeset_directory, f"{self.routeset_id}_routeset_summary.html"))
