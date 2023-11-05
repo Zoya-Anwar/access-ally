@@ -28,10 +28,15 @@ def get_card_data():
 
     start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
     route_set = RouteSet(start=start_location, distance=2.0, num_routes=10)
-    uuids = route_set.generate_routes()
+
+    parent_directory = route_set.routeset_id
+    uuids = route_set.generate_routes(save_individual_maps=True)
+
+    paths = [f'static/{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
+    #print(paths)
 
     # Convert the HTML content to JSON
-    template_json = {'uuids': uuids}
+    template_json = {'paths': paths}
 
     return jsonify(template_json)
 
