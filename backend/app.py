@@ -38,6 +38,8 @@ def get_card_data():
         selected_categories = request.form.getlist('categories')  # Use getlist to handle multiple checkboxes
         specific_descriptors = request.form.get('specific_descriptors')
 
+        print(specific_descriptors)
+
         # Save the data to the selected_options variable
         selected_options['country'] = country
         selected_options['selected_categories'] = selected_categories
@@ -54,6 +56,7 @@ def get_card_data():
 
         end_coordinates = [r.end for r in route_set.routes]
         destinations = reverse_geocode(end_coordinates)
+        template_json = {'paths': paths, 'descriptions': path_descriptions, 'destination': destinations}
     except:
         path_descriptions = ["lorem", "ipsum", "fox", "cat", "hungry", "jumped", "tree", "three", "liar", "man"]
         destinations = ["manchester", "york", "newcastle", "leeds", "sheffield", "huddersfield", "durham :(", "london", "glasgow", "twitter"]
