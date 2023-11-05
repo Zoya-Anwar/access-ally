@@ -8,7 +8,7 @@
 	<div class="flex flex-wrap items-center mr-auto">
 		<button
 			on:click
-			class="w-full md:w-auto text-center bg-green-600 hover:bg-pink-700 mb-4 flex-none rounded-full text-white font-medium py-3 px-6 mr-8"
+			class="w-full md:w-auto text-center bg-green-600 hover:bg-green-700 mb-4 flex-none rounded-full text-white font-medium py-3 px-6 mr-8"
 		>
 			Get recommendations
 		</button>
