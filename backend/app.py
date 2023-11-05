@@ -12,55 +12,34 @@ selected_options = {
     'specific_descriptors': ''
 }
 
-import os
-
-
-def list_sample_html_filenames_in_directory():
-    root_directory = os.path.join(os.getcwd(), 'static', 'routeset_631408cd')
-    html_filenames = []
-    for root, dirs, files in os.walk(root_directory):
-        for file in files:
-            if file.endswith(".html"):
-                # Get the path relative to the 'static' directory
-                relative_path = os.path.relpath(os.path.join(root, file), root_directory)
-                html_filenames.append("http://127.0.0.1:8001/static/" + "routeset_631408cd/" + relative_path)
-    return html_filenames
-
-
-
 @app.route('/api/card_data', methods=['POST'])
 def get_card_data():
     global selected_options
+    uuids = []
+    # Get the data from the request form
+    country = request.form.get('country')
+    selected_categories = request.form.getlist('categories')  # Use getlist to handle multiple checkboxes
+    specific_descriptors = request.form.get('specific_descriptors')
 
-    try:
-        uuids = []
-        # Get the data from the request form
-        country = request.form.get('country')
-        selected_categories = request.form.getlist('categories')  # Use getlist to handle multiple checkboxes
-        specific_descriptors = request.form.get('specific_descriptors')
+    # Save the data to the selected_options variable
+    selected_options['country'] = country
+    selected_options['selected_categories'] = selected_categories
+    selected_options['specific_descriptors'] = specific_descriptors
 
-        # Save the data to the selected_options variable
-        selected_options['country'] = country
-        selected_options['selected_categories'] = selected_categories
-        selected_options['specific_descriptors'] = specific_descriptors
+    start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
+    route_set = RouteSet(start=start_location, distance=2.0, num_routes=2)
 
-        start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
-        route_set = RouteSet(start=start_location, distance=2.0, num_routes=10)
+    parent_directory = route_set.routeset_directory
+    uuids = route_set.generate_routes(save_individual_maps=True)
 
-        parent_directory = route_set.routeset_id
-        uuids = route_set.generate_routes(save_individual_maps=True)
-
-        paths = [f'static/{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
-        # print(paths)
-
-    except:
-        paths = list_sample_html_filenames_in_directory()
-
-    # Convert the HTML content to JSON
+    paths = [f'{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
     template_json = {'paths': paths}
-    print(template_json)
+
     return jsonify(template_json)
 
 
 if __name__ == '__main__':
     app.run()
+
+
+
