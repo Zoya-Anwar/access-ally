@@ -33,62 +33,6 @@
     */
    export let loading;
 
-
-   const categoryTypes = [
-      'Action',
-      'Adventure',
-      'Animation',
-      'Biography',
-      'Comedy',
-      'Crime',
-      'Documentary',
-      'Drama',
-      'Family',
-      'Fantasy',
-      'Film-Noir',
-      'History',
-      'Horror',
-      'Musical',
-      'Mystery',
-      'Romance',
-      'Sci-Fi',
-      'Sport',
-      'Thriller',
-      'War',
-      'Western',
-      'Art-house',
-      'Black-Comedy',
-      'Chick-flick',
-      'Cult-classic',
-      'Dark-Comedy',
-      'Epic',
-      'Erotic',
-      'Experimental',
-      'Fairy-tale',
-      'Film-within-a-film',
-      'Futuristic',
-      'Gangster',
-      'Heist',
-      'Historical',
-      'Holiday',
-      'Indie',
-      'Juvenile',
-      'Melodrama',
-      'Monster',
-      'Political',
-      'Psychological',
-      'Road-movie',
-      'Satire',
-      'Science-Fiction',
-      'Slapstick',
-      'Social-issue',
-      'Superhero',
-      'Surreal',
-      'Teen',
-      'Vampire',
-      'Zombie'
-   ];
-
   let userLocation = '';
 
   async function getLocation() {
@@ -97,7 +41,7 @@
       const { latitude, longitude } = position.coords;
       userLocation = `Latitude: ${latitude}, Longitude: ${longitude}`;
     } catch (error) {
-      userLocation = 'Failed to retrieve location';
+      userLocation = '-4.4824, 54.1663';
     }
   }
 
@@ -135,15 +79,16 @@
 	   <div class="mb-8">
          <div class="mb-4 font-semibold text-lg">What is your start location?</div>
          <div class="flex items-center">
-			<input type="text" bind:value={userLocation} readonly />
-			<button on:click={getLocation}>Get Location</button>
+			<input type="text" class="mb-4 font-semibold text-lg rounded-full border" style="margin-right: 10px; font-family: 'Arial Black'" bind:value={userLocation} readonly />
+            <br>
+			<button class="mb-4 font-semibold text-lg" on:click={getLocation}>Get Location</button>
          </div>
       </div>
 
 	   <div class="mb-8">
          <div class="mb-4 font-semibold text-lg">What distance would you like to travel?</div>
          <div class="flex items-center">
-			<input type="range" bind:value={sliderValue} min="0" max="10000" step="1" />
+			<input type="range" bind:value={sliderValue} min="0" max="10000" step="1" style="margin-right: 10px; margin-bottom: 10px" />
 			<div class="mb-4 font-semibold text-lg">Distance: {sliderValue} metres</div>
          </div>
       </div>
@@ -218,7 +163,7 @@
       </div>
       <div class="mt-8">
          <div class="mb-4 font-semibold text-lg">
-            Write any other specifications here. Be as picky as you'd like.
+            Ask our AI assistant Ally for any other specifications. Be as picky as you'd like.
          </div>
          <textarea
             bind:value={specificDescriptors}
@@ -229,8 +174,8 @@
             on:click
             class={`${
                loading
-                  ? 'bg-pink-400/50'
-                  : 'bg-pink-600 hover:bg-gradient-to-r from-pink-700 via-pink-600 to-pink-700 '
+                  ? 'bg-green-400/50'
+                  : 'bg-green-600 hover:bg-gradient-to-r from-green-700 via-green-600 to-green-700 '
             } mt-4 w-full h-10 text-white font-bold p-3 rounded-full flex items-center justify-center`}
          >
             {#if loading}
