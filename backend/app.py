@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
-from route import Route, Coordinate, RouteSet
+from route import Route, Coordinate, RouteSet, reverse_geocode
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -31,7 +31,6 @@ def list_sample_html_filenames_in_directory():
 @app.route('/api/card_data', methods=['POST'])
 def get_card_data():
     global selected_options
-
     try:
         uuids = []
         # Get the data from the request form
@@ -45,13 +44,17 @@ def get_card_data():
         selected_options['specific_descriptors'] = specific_descriptors
 
         start_location = Coordinate(longitude=-4.4824, latitude=54.1663)
-        route_set = RouteSet(start=start_location, distance=2.0, num_routes=10)
+        route_set = RouteSet(start=start_location, distance=2.0, num_routes=2)
 
-        parent_directory = route_set.routeset_id
+        parent_directory = route_set.routeset_directory
         uuids = route_set.generate_routes(save_individual_maps=True)
 
-        paths = [f'static/{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
-        # print(paths)
+        paths = [f'{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
+        path_descriptions = [single_route.path_description for single_route in route_set.routes]
+
+        end_coordinates = [r.end for r in route_set.routes]
+        destinations = reverse_geocode(end_coordinates)
+        template_json = {'paths': paths, 'descriptions': path_descriptions, 'destination': destinations}
 
     except:
         paths = list_sample_html_filenames_in_directory()
@@ -61,6 +64,8 @@ def get_card_data():
     print(template_json)
     return jsonify(template_json)
 
-
 if __name__ == '__main__':
     app.run()
+
+
+

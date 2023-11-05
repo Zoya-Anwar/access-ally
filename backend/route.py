@@ -13,6 +13,19 @@ import geopandas as gpd
 from shapely.geometry import Point
 from slope_analysis import calculate_slopes, slope_to_color
 
+from geopy.geocoders import Nominatim
+
+
+def reverse_geocode(coordinates):
+    geolocator = Nominatim(user_agent="access_ally_durhack2023")  # Set a relevant user agent
+    locations = []
+    for coordinate in coordinates:
+        location = geolocator.reverse((coordinate.latitude, coordinate.longitude), exactly_one=True)
+        name = location.raw.get('address', {}).get('road', location.address.split(',')[0])  # Gets the 'road' or the first part of the address
+        locations.append(name)
+    return locations
+
+
 BASEMAPS = {
     "OpenStreetMap": ctx.providers.OpenStreetMap.Mapnik,
     "GoogleSatellite": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
@@ -29,16 +42,16 @@ class Route:
         self.route_data = self.fetch_osrm_route(self.start, self.end)
         self.route_coords = [(Coordinate(longitude=coord[0], latitude=coord[1])) for coord in self.route_data['routes'][0]['geometry']['coordinates']]
         self.route_segments = [(self.route_coords[i], self.route_coords[i + 1]) for i in range(len(self.route_coords) - 1)]
-
         self.segment_attributes = {
             'slope': calculate_slopes(self.route_segments)
         }
-
         self.duration_seconds = self.route_data['routes'][0]['duration']
         self.length_meters = self.route_data['routes'][0]['distance']
         self.uuid = str(uuid.uuid4())[:8]
         self.route_number = len(self.parent_routeset.routes) + 1
+        self.path_description = f"Route UUID: {self.uuid}\nRoute Number: {self.route_number}\nRoute Length: {self.length_meters} meters\nRoute Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds % 60)}s"
         self.directory = None
+        self.description = '(empty description)'
 
     @staticmethod
     def fetch_osrm_route(start: Coordinate, end: Coordinate, osrm_url: str = 'http://localhost:8001') -> dict:
@@ -86,11 +99,7 @@ class Route:
             existing_map)
 
         # Update popup_content for the end marker
-        popup_content = f"Route UUID: {self.uuid}<br>" \
-                        f"Route Number: {self.route_number}<br>" \
-                        f"Route Length: {self.length_meters} meters<br>" \
-                        f"Route Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds % 60)}s"
-        popup_obj = folium.Popup(popup_content, max_width=300)
+        popup_obj = folium.Popup(self.path_description, max_width=300)
 
         # Add end marker with updated popup
         folium.Marker(location=Route.to_lat_long(self.end), popup=popup_obj, icon=folium.Icon(color='red')).add_to(
