@@ -54,13 +54,19 @@ def get_card_data():
 
         end_coordinates = [r.end for r in route_set.routes]
         destinations = reverse_geocode(end_coordinates)
-        template_json = {'paths': paths, 'descriptions': path_descriptions, 'destination': destinations}
-
     except:
+        path_descriptions = ["lorem", "ipsum", "fox", "cat", "hungry", "jumped", "tree", "three", "liar", "man"]
+        destinations = ["manchester", "york", "newcastle", "leeds", "sheffield", "huddersfield", "durham :(", "london", "glasgow", "twitter"]
         paths = list_sample_html_filenames_in_directory()
 
+    recommendations = []
+    for i in range(len(paths)):
+        current_recommendation = {"path": paths[i], "destination": destinations[i], "description": path_descriptions[i]}
+        recommendations.append(current_recommendation)
+
     # Convert the HTML content to JSON
-    template_json = {'paths': paths}
+    template_json = {'recommendations': recommendations}
+
     print(template_json)
     return jsonify(template_json)
 

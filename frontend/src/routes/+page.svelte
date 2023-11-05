@@ -17,8 +17,9 @@
 	 * @type {string}
 	 */
 	let searchResponse = '';
+
 	/**
-	 * @type {Array<string>}
+	 * @type {Array<{ path: string, destination: string, description: string } >}
 	 */
 	let recommendations = [];
 
@@ -31,8 +32,16 @@
 			let lastLength = recommendations.length;
 			let responseObj = JSON.parse(searchResponse);
 
-			if (responseObj.paths) {
-				recommendations = responseObj.paths;
+			if (responseObj.recommendations) {
+				recommendations = responseObj.recommendations.map((item) => {
+					const path = item.path;
+					const destination = item.destination;
+					const description = item.description;
+
+					return { path, destination, description };
+				});
+
+				console.log('Recommendations:', recommendations); // Debug line
 			}
 
 			if (recommendations.length > lastLength) {
@@ -174,14 +183,11 @@
 						</div>
 					{/if}
 					{#if recommendations}
-
 						{#each recommendations as recommendation, i (i)}
 							<div>
-								{#if recommendation !== ''}
-									<div class="mb-8">
-										<RecommendationCard {recommendation} />
-									</div>
-								{/if}
+								<div class="mb-8">
+									<RecommendationCard {recommendation} />
+								</div>
 							</div>
 						{/each}
 					{/if}

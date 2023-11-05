@@ -1,11 +1,39 @@
 <script>
 	import { fade } from 'svelte/transition';
 	import LoadingCard from './LoadingCard.svelte';
+
+	/**
+	 * @type {{ path: string, destination: string, description: string }}
+	 */
+	export let recommendation;
+	console.log('Recommendation:', recommendation); // Debug line
+
+
 	/**
 	 * @type {string}
 	 */
-	export let recommendation;
-	console.log(recommendation)
+	let path;
+
+	/**
+	 * @type {string}
+	 */
+	let destination;
+
+	/**
+	 * @type {string}
+	 */
+	let description;
+
+	if (recommendation.path && recommendation.destination && recommendation.description) {
+	  path = recommendation.path;
+	  destination = recommendation.destination;
+	  description = recommendation.description;
+	} else {
+	  // Handle cases where recommendation is undefined or doesn't have the expected properties
+	  path = '';
+	  destination = '';
+	  description = '';
+	}
 </script>
 
 <div>
@@ -67,14 +95,17 @@
 				<div class="flex items-end mb-4">
 					<div class="font-bold text-slate-200 text-3xl">
 						Take a look at this!
-						<span class="font-bold text-slate-200/60 text-xl ml-2">Location 1</span>
+						<span class="font-bold text-slate-200/60 text-xl ml-2">{String(destination)}</span>
 					</div>
 				</div>
 				<div class="text-slate-200/90 mb-4">
-					{console.log(recommendation)}
+					{String(description)}
+				</div>
+
+				<div class="text-slate-200/90 mb-4">
 				  <iframe
 
-					src={recommendation}
+					src={path}
 					width="100%"
 					height="500"
 				  ></iframe

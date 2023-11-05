@@ -214,29 +214,6 @@
             {/each}
          </div>
       </div>
-      <div>
-         <div class="mb-4 font-semibold text-lg">
-            Select all categories that you want the show or movie to include.
-         </div>
-         <div class="flex items-center flex-wrap">
-            {#each categoryTypes as category}
-               <label
-                  class={`${
-                     selectedCategories.includes(category) ? 'bg-pink-600/40' : ''
-                  } text-slate-200 font-bold mr-2 mt-2 text-sm py-2 px-4 rounded-full border border-pink-600`}
-               >
-                  <input
-                     class="hidden"
-                     type="checkbox"
-                     bind:group={selectedCategories}
-                     name="categories"
-                     value={category}
-                  />
-                  {category}
-               </label>
-            {/each}
-         </div>
-      </div>
       <div class="mt-8">
          <div class="mb-4 font-semibold text-lg">
             Write any other specifications here. Be as picky as you'd like.
