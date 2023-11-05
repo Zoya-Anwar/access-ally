@@ -1,7 +1,6 @@
 <script>
    import LoadingIndicator from './Loading.svelte';
 
-
    /**
     * @type string
     */
@@ -13,7 +12,6 @@
    /**
     * @type Array<string>
     */
-
    export let timelight;
    /**
     * @type Array<string>
@@ -264,4 +262,5 @@
          </button>
       </div>
    </div>
+
 </div>
