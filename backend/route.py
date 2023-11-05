@@ -49,9 +49,17 @@ class Route:
         self.length_meters = self.route_data['routes'][0]['distance']
         self.uuid = str(uuid.uuid4())[:8]
         self.route_number = len(self.parent_routeset.routes) + 1
-        self.path_description = f"Route UUID: {self.uuid}\nRoute Number: {self.route_number}\nRoute Length: {self.length_meters} meters\nRoute Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds % 60)}s"
+        self.calculate_gentle_slope_percentage() #also generates description
         self.directory = None
         self.description = '(empty description)'
+
+    def calculate_gentle_slope_percentage(self, threshold=3):
+        gentle_slopes = [slope for slope in self.segment_attributes['slope'] if slope < threshold]
+        self.percent_gentle_slope = round((len(gentle_slopes) / len(self.segment_attributes['slope'])) * 100, 1)
+
+        self.generate_path_description()
+    def generate_path_description(self):
+        self.path_description = f"Route UUID: {self.uuid}  ||  Route Number: {self.route_number}  ||  Route Length: {self.length_meters} meters  ||  Route Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds % 60)}s  ||  Gentle Slope Percentage: {self.percent_gentle_slope}"
 
     @staticmethod
     def fetch_osrm_route(start: Coordinate, end: Coordinate, osrm_url: str = 'http://localhost:5000') -> dict:
@@ -131,7 +139,6 @@ class Route:
         ax.scatter(self.start.longitude, self.start.latitude, color='green', label='Start')
         ax.scatter(self.end.longitude, self.end.latitude, color='red', label='End')
 
-        # The rest of your function remains the same...
         ax.axis('off')
         buffer = 0.001
 
