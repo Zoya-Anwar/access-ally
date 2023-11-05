@@ -49,18 +49,19 @@ def get_card_data():
         parent_directory = route_set.routeset_directory
         uuids = route_set.generate_routes(save_individual_maps=True)
 
-        paths = [f'{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
+        paths = [f'http://127.0.0.1:8001/{parent_directory}/route_{uuid}/{uuid}_webmap.html' for uuid in uuids]
         path_descriptions = [single_route.path_description for single_route in route_set.routes]
 
         end_coordinates = [r.end for r in route_set.routes]
         destinations = reverse_geocode(end_coordinates)
         template_json = {'paths': paths, 'descriptions': path_descriptions, 'destination': destinations}
-
-    except:
+    except ZeroDivisionError:
+        print('excepted!')
         paths = list_sample_html_filenames_in_directory()
+        print(paths)
+        template_json = {'paths': paths}
 
     # Convert the HTML content to JSON
-    template_json = {'paths': paths}
     print(template_json)
     return jsonify(template_json)
 
