@@ -18,7 +18,7 @@
 	 */
 	let searchResponse = '';
 	/**
-	 * @type {Array<string | {UUID: String}>}
+	 * @type {Array<string>}
 	 */
 	let recommendations = [];
 
@@ -29,16 +29,12 @@
 	$: {
 		if (searchResponse) {
 			let lastLength = recommendations.length;
-			let x = searchResponse?.split('\n');
-			recommendations = x.map((d, i) => {
-				if ((x.length - 1 > i || endStream) && d !== '') {
-					// @ts-ignore
-					const UUID = d.slice(1, -1);
-					return { UUID };
-				} else {
-					return d;
-				}
-			});
+			let responseObj = JSON.parse(searchResponse);
+
+			if (responseObj.paths) {
+				recommendations = responseObj.paths;
+			}
+
 			if (recommendations.length > lastLength) {
 				animateScroll.scrollToBottom({ duration: 1500 });
 			}
@@ -183,13 +179,7 @@
 							<div>
 								{#if recommendation !== ''}
 									<div class="mb-8">
-										{#if typeof recommendation !== 'string' && recommendation}
-											<RecommendationCard {recommendation} />
-										{:else}
-											<div in:fade>
-												<LoadingCard incomingStream={recommendation} />
-											</div>
-										{/if}
+										<RecommendationCard {recommendation} />
 									</div>
 								{/if}
 							</div>
