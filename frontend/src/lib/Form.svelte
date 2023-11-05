@@ -4,7 +4,7 @@
 	/**
 	 * @type string
 	 */
-	export let cinemaType;
+	export let country;
 	/**
 	 * @type Array<string>
 	 */
@@ -73,7 +73,7 @@
 		'Zombie'
 	];
 
-	let cinemaTypes = [
+	let countries = [
 		{ value: 'tv show', title: 'TV Show' },
 		{ value: 'movie', title: 'Movie' },
 		{ value: 'tv show or movie', title: 'No Preference' }
@@ -85,13 +85,13 @@
 		<div class="mb-8">
 			<div class="mb-4 font-semibold text-lg">What kind of cinema are you searching for?</div>
 			<div class="flex items-center">
-				{#each cinemaTypes as type (type.value)}
+				{#each countries as type (type.value)}
 					<button
 						on:click={() => {
-							cinemaType = type.value;
+							country = type.value;
 						}}
 						class={`${
-							cinemaType === type.value ? 'bg-pink-600/40' : ''
+							country === type.value ? 'bg-pink-600/40' : ''
 						} text-slate-200 font-bold mr-2 text-sm mt-2 py-2 px-4 rounded-full border border-pink-600`}
 					>
 						{type.title}

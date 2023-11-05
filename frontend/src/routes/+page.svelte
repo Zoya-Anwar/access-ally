@@ -6,8 +6,6 @@
 	import Footer from '$lib/Footer.svelte';
 	import Header from '$lib/Header.svelte';
 	import RecommendationCard from '$lib/RecommendationCard.svelte';
-	import EmbeddedHTML from '$lib/EmbeddedHTML.svelte';
-
 	import { onMount } from 'svelte';
 	import LoadingCard from '$lib/LoadingCard.svelte';
 	let loading = false;
@@ -20,7 +18,7 @@
 	 */
 	let searchResponse = '';
 	/**
-	 * @type {Array<string | {title: string, description: string}>}
+	 * @type {Array<string | {htmlContent: String}>}
 	 */
 	let recommendations = [];
 
@@ -35,8 +33,8 @@
 			recommendations = x.map((d, i) => {
 				if ((x.length - 1 > i || endStream) && d !== '') {
 					// @ts-ignore
-					const [, title, description] = d.match(/\d\.\s*(.*?):\s*(.*)/);
-					return { title, description };
+					const htmlContent = d.slice(1, -1);
+					return { htmlContent };
 				} else {
 					return d;
 				}
@@ -50,7 +48,7 @@
 	/**
 	 * @type {string}
 	 */
-	let cinemaType = 'tv show';
+	let country = 'Wales';
 	/**
 	 * @type {Array<string>}
 	 */
@@ -64,7 +62,7 @@
 		endStream = false;
 		loading = true;
 
-		let fullSearchCriteria = `Give me a list of 5 ${cinemaType} recommendations ${
+		let fullSearchCriteria = `Give me a list of 5 walks in ${country} recommendations ${
 			selectedCategories ? `that fit all of the following categories: ${selectedCategories}` : ''
 		}. ${
 			specificDescriptors
@@ -72,9 +70,9 @@
 				: ''
 		} ${
 			selectedCategories || specificDescriptors
-				? `If you do not have 5 recommendations that fit these criteria perfectly, do your best to suggest other ${cinemaType}'s that I might like.`
+				? `If you do not have 5 recommendations that fit these criteria perfectly, do your best to suggest other walks in ${country}'s that I might like.`
 				: ''
-		} Please return this response as a numbered list with the ${cinemaType}'s title, followed by a colon, and then a brief description of the ${cinemaType}. There should be a line of whitespace between each item in the list.`;
+		} Please return this response as a numbered list with the walk's title, followed by a colon, and then a brief description of the walk. There should be a line of whitespace between each item in the list.`;
 		const response = await fetch('/api/getRecommendation', {
 			method: 'POST',
 			body: JSON.stringify({ searched: fullSearchCriteria }),
@@ -116,7 +114,7 @@
 		recommendations = [];
 		searchResponse = '';
 		endStream = false;
-		cinemaType = 'tv show';
+		country = 'Wales';
 		selectedCategories = [];
 		specificDescriptors = '';
 	}
@@ -153,7 +151,7 @@
 			<div in:fade class="w-full max-w-4xl mx-auto">
 				<div class="w-full mb-8">
 					<Form
-						bind:cinemaType
+						bind:country
 						bind:selectedCategories
 						bind:loading
 						bind:specificDescriptors
@@ -185,7 +183,7 @@
 							<div>
 								{#if recommendation !== ''}
 									<div class="mb-8">
-										{#if typeof recommendation !== 'string' && recommendation.title}
+										{#if typeof recommendation !== 'string' && recommendation}
 											<RecommendationCard {recommendation} />
 										{:else}
 											<div in:fade>

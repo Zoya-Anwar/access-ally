@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -11,9 +11,13 @@ def get_card_data():
         template_content = file.read()
 
     # Convert the HTML content to JSON
-    template_json = {'html_content': template_content}
+    template_json = {'html_content': str(template_content)}
 
     return jsonify(template_json)
+
+@app.route('/show_card')
+def show():
+    return render_template('routesets/routeset_3d068197/route_98d2795a/map.html')
 
 if __name__ == '__main__':
     app.run()
