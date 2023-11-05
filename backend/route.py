@@ -29,11 +29,9 @@ class Route:
         self.route_data = self.fetch_osrm_route(self.start, self.end)
         self.route_coords = [(Coordinate(longitude=coord[0], latitude=coord[1])) for coord in self.route_data['routes'][0]['geometry']['coordinates']]
         self.route_segments = [(self.route_coords[i], self.route_coords[i + 1]) for i in range(len(self.route_coords) - 1)]
-
         self.segment_attributes = {
             'slope': calculate_slopes(self.route_segments)
         }
-
         self.duration_seconds = self.route_data['routes'][0]['duration']
         self.length_meters = self.route_data['routes'][0]['distance']
         self.uuid = str(uuid.uuid4())[:8]
