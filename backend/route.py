@@ -71,11 +71,6 @@ class Route:
         self.plot_route_on_map(route_map)
         route_map.save(os.path.join(self.directory, f"{self.uuid}_webmap.html"))
 
-    def plot_route_on_individual_map(self):
-        route_map = folium.Map(location=Route.to_lat_long(self.start), zoom_start=14)
-        self.plot_route_on_map(route_map)
-        route_map.save(os.path.join(self.directory, f"{self.uuid}_webmap.html"))
-
     def plot_route_on_map(self, existing_map):
         # Iterate over the segments and their corresponding slopes to plot them
         for segment, slope in zip(self.route_segments, self.segment_attributes['slope']):
@@ -180,12 +175,14 @@ class RouteSet:
             if Point(new_long, new_lat).within(isle_of_man_polygon):
                 return Coordinate(longitude=new_long, latitude=new_lat)
 
-    def generate_routes(self):
+    def generate_routes(self, save_individual_maps=False):
         uuids = []
         for _ in range(self.num_routes):
             end = self.generate_end_points()
             route_instance = Route(self.start, end, parent_routeset=self)
             route_instance.save_geojson(self.routeset_directory)
+            if save_individual_maps:
+                route_instance.plot_route_on_individual_map()
             uuids.append(route_instance.visualize_route())
             self.routes.append(route_instance)
         self.save_routeset_map()

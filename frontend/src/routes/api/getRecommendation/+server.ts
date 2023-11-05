@@ -1,7 +1,7 @@
 import http from 'http';
 
 export async function POST({ request }: { request: any }) {
-  const flaskServerUrl = 'http://127.0.0.1:5000'; // Include the port number
+  const flaskServerUrl = 'http://127.0.0.1:8001'; // Include the port number
   const flaskEndpoint = '/api/card_data'; // Replace with your Flask server endpoint
 
   const payload = {
@@ -12,7 +12,7 @@ export async function POST({ request }: { request: any }) {
 
   const requestOptions = {
     hostname: '127.0.0.1',
-    port: 5000,
+    port: 8001,
     path: flaskEndpoint,
     method: 'POST',
     headers: {

@@ -68,7 +68,7 @@
 				</div>
 				<div class="text-slate-200/90 mb-4">
 				  <iframe
-					src="http://127.0.0.1:5000/static/map.html"
+					src="http://127.0.0.1:8001/static/map.html"
 					width="100%"
 					height="500"
 				  ></iframe>
