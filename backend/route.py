@@ -36,7 +36,9 @@ class Route:
         self.length_meters = self.route_data['routes'][0]['distance']
         self.uuid = str(uuid.uuid4())[:8]
         self.route_number = len(self.parent_routeset.routes) + 1
+        self.path_description = f"Route UUID: {self.uuid}\nRoute Number: {self.route_number}\nRoute Length: {self.length_meters} meters\nRoute Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds % 60)}s"
         self.directory = None
+        self.description = '(empty description)'
 
     @staticmethod
     def fetch_osrm_route(start: Coordinate, end: Coordinate, osrm_url: str = 'http://localhost:8001') -> dict:
@@ -84,11 +86,7 @@ class Route:
             existing_map)
 
         # Update popup_content for the end marker
-        popup_content = f"Route UUID: {self.uuid}<br>" \
-                        f"Route Number: {self.route_number}<br>" \
-                        f"Route Length: {self.length_meters} meters<br>" \
-                        f"Route Duration: {int(self.duration_seconds // 60)}m {int(self.duration_seconds % 60)}s"
-        popup_obj = folium.Popup(popup_content, max_width=300)
+        popup_obj = folium.Popup(self.path_description, max_width=300)
 
         # Add end marker with updated popup
         folium.Marker(location=Route.to_lat_long(self.end), popup=popup_obj, icon=folium.Icon(color='red')).add_to(
