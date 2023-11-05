@@ -1,7 +1,11 @@
 <script>
 	import { fade } from 'svelte/transition';
 	import LoadingCard from './LoadingCard.svelte';
-
+	/**
+	 * @type {string}
+	 */
+	export let recommendation;
+	console.log(recommendation)
 </script>
 
 <div>
@@ -67,11 +71,14 @@
 					</div>
 				</div>
 				<div class="text-slate-200/90 mb-4">
+					{console.log(recommendation)}
 				  <iframe
-					src="http://127.0.0.1:8001/static/map.html"
+
+					src={recommendation}
 					width="100%"
 					height="500"
-				  ></iframe>
+				  ></iframe
+						  >
 				</div>
 			</div>
 		</div>

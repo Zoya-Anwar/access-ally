@@ -41,7 +41,7 @@ class Route:
         self.directory = None
 
     @staticmethod
-    def fetch_osrm_route(start: Coordinate, end: Coordinate, osrm_url: str = 'http://localhost:5000') -> dict:
+    def fetch_osrm_route(start: Coordinate, end: Coordinate, osrm_url: str = 'http://localhost:8001') -> dict:
         coordinates = f"{start.longitude},{start.latitude};{end.longitude},{end.latitude}"
         route_url = f"{osrm_url}/route/v1/walking/{coordinates}?overview=full&geometries=geojson"
         response = requests.get(route_url)
