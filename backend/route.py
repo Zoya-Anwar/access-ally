@@ -13,6 +13,19 @@ import geopandas as gpd
 from shapely.geometry import Point
 from slope_analysis import calculate_slopes, slope_to_color
 
+from geopy.geocoders import Nominatim
+
+
+def reverse_geocode(coordinates):
+    geolocator = Nominatim(user_agent="access_ally_durhack2023")  # Set a relevant user agent
+    locations = []
+    for coordinate in coordinates:
+        location = geolocator.reverse((coordinate.latitude, coordinate.longitude), exactly_one=True)
+        name = location.raw.get('address', {}).get('road', location.address.split(',')[0])  # Gets the 'road' or the first part of the address
+        locations.append(name)
+    return locations
+
+
 BASEMAPS = {
     "OpenStreetMap": ctx.providers.OpenStreetMap.Mapnik,
     "GoogleSatellite": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"

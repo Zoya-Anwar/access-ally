@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
-from route import Route, Coordinate, RouteSet
+from route import Route, Coordinate, RouteSet, reverse_geocode
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -34,7 +34,10 @@ def get_card_data():
 
     paths = [f'{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
     path_descriptions = [single_route.path_description for single_route in route_set.routes]
-    template_json = {'paths': paths, 'descriptions': path_descriptions}
+
+    end_coordinates = [r.end for r in route_set.routes]
+    destinations = reverse_geocode(end_coordinates)
+    template_json = {'paths': paths, 'descriptions': path_descriptions, 'destination': destinations}
 
     return jsonify(template_json)
 
