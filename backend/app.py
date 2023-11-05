@@ -33,13 +33,11 @@ def get_card_data():
     uuids = route_set.generate_routes(save_individual_maps=True)
 
     paths = [f'{parent_directory}/route{uuid}/{uuid}_webmap.html' for uuid in uuids]
-    template_json = {'paths': paths}
+    path_descriptions = [single_route.path_description for single_route in route_set.routes]
+    template_json = {'paths': paths, 'descriptions': path_descriptions}
 
     return jsonify(template_json)
 
 
 if __name__ == '__main__':
     app.run()
-
-
-
